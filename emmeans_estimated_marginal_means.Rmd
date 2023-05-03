@@ -114,3 +114,32 @@ Estimated marginal means are defined as marginal means of model predictions over
 ```{r}
 (RG <- expand.grid(source = levels(pigs$source), percent = unique(pigs$percent)))
 ```
+
+To get the EMMs, we first need to obtain predictions on this grid:
+
+```{r}
+(preds <- matrix(predict(mod4, newdata = RG), nrow = 3))
+```
+
+then obtain the marginal means of these predictions:
+```{r}
+apply(preds, 1, mean)   # row means -- for source
+```
+
+```{r}
+apply(preds, 2, mean)   # column means -- for percent
+```
+
+These marginal averages match the EMMs obtained earlier via `emmeans()`.
+
+Now let’s go back to the comparison with the ordinary marginal means. The source levels are represented by the columns of pred; and note that each row of pred is a decreasing set of values. So it is no wonder that the marginal means – the EMMs for source – are decreasing. That the OMMs for percent do not behave this way is due to the imbalance in sample sizes:
+
+```{r}
+with(pigs, table(source, percent))
+```
+
+This shows that the OMMs of the last column give most of the weight (3/5) to the first source, which tends to have higher inverse(conc), making the OMM for 18 percent higher than that for 15 percent, even though the reverse is true with every level of source. This kind of disconnect is an example of Simpson’s paradox, in which a confounding factor can distort your findings. The EMMs are not subject to this paradox, but the OMMs are, when the sample sizes are correlated with the expected values.
+
+In summary, we obtain a references grid of all factor combinations, obtain model predictions on that grid, and then the expected marginal means are estimated as equally-weighted marginal averages of those predictions. Those EMMs are not subject to confounding by other factors, such as might happen with ordinary marginal means of the data. Moreover, unlike OMMs, EMMs are based on a model that is fitted to the data.
+
+

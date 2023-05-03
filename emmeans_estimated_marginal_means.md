@@ -15,12 +15,6 @@ Patrick Cherry
   id="toc-the-reference-grid-and-definition-of-emms">The reference grid,
   and definition of EMMs</a>
 
-``` r
-vignette("models", package = "emmeans")
-```
-
-    ## starting httpd help server ... done
-
 Estimated marginal means (EMMs, previously known as least-squares means
 in the context of traditional regression models) are derived by using a
 model to make predictions over a regular grid of predictor combinations
@@ -50,14 +44,14 @@ mod1 <- lm(conc ~ source * factor(percent), data = pigs)
 par(mfrow = c(2,2)); plot(mod1)
 ```
 
-![](emmeans_estimated_marginal_means_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](emmeans_estimated_marginal_means_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
 ``` r
 mod2 <- update(mod1, . ~ source + factor(percent))   # no interaction
 par(mfrow = c(2,2)); plot(mod2)
 ```
 
-![](emmeans_estimated_marginal_means_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](emmeans_estimated_marginal_means_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 ``` r
 map_dfr(list(mod1, mod2), glance)
@@ -94,7 +88,7 @@ mod5 <- update(mod4, . ~ source + percent)  # linear term for percent
 par(mfrow = c(2,2)); plot(mod5)
 ```
 
-![](emmeans_estimated_marginal_means_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](emmeans_estimated_marginal_means_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ``` r
 map_dfr(list(mod1, mod2, mod3, mod4, mod5), glance)
@@ -253,3 +247,63 @@ the reference grid. For the example at hand, the reference grid is
 | skim   |      18 |
 
 </div>
+
+To get the EMMs, we first need to obtain predictions on this grid:
+
+``` r
+(preds <- matrix(predict(mod4, newdata = RG), nrow = 3))
+```
+
+    ##            [,1]       [,2]       [,3]       [,4]
+    ## [1,] 0.03853514 0.03329091 0.03256404 0.03036586
+    ## [2,] 0.03050486 0.02526063 0.02453376 0.02233558
+    ## [3,] 0.02770292 0.02245869 0.02173182 0.01953364
+
+then obtain the marginal means of these predictions:
+
+``` r
+apply(preds, 1, mean)   # row means -- for source
+```
+
+    ## [1] 0.03368899 0.02565870 0.02285677
+
+``` r
+apply(preds, 2, mean)   # column means -- for percent
+```
+
+    ## [1] 0.03224764 0.02700341 0.02627654 0.02407836
+
+These marginal averages match the EMMs obtained earlier via `emmeans()`.
+
+Now let’s go back to the comparison with the ordinary marginal means.
+The source levels are represented by the columns of pred; and note that
+each row of pred is a decreasing set of values. So it is no wonder that
+the marginal means – the EMMs for source – are decreasing. That the OMMs
+for percent do not behave this way is due to the imbalance in sample
+sizes:
+
+``` r
+with(pigs, table(source, percent))
+```
+
+    ##       percent
+    ## source 9 12 15 18
+    ##   fish 2  3  2  3
+    ##   soy  3  3  3  1
+    ##   skim 3  3  2  1
+
+This shows that the OMMs of the last column give most of the weight
+(3/5) to the first source, which tends to have higher inverse(conc),
+making the OMM for 18 percent higher than that for 15 percent, even
+though the reverse is true with every level of source. This kind of
+disconnect is an example of Simpson’s paradox, in which a confounding
+factor can distort your findings. The EMMs are not subject to this
+paradox, but the OMMs are, when the sample sizes are correlated with the
+expected values.
+
+In summary, we obtain a references grid of all factor combinations,
+obtain model predictions on that grid, and then the expected marginal
+means are estimated as equally-weighted marginal averages of those
+predictions. Those EMMs are not subject to confounding by other factors,
+such as might happen with ordinary marginal means of the data. Moreover,
+unlike OMMs, EMMs are based on a model that is fitted to the data.
