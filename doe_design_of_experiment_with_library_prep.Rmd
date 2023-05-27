@@ -141,7 +141,7 @@ googlesheets4::write_sheet(rna_TE__doe_blocked, ss = "sheet_string_goes_here",
 write_csv(rna_TE__doe_blocked, paste("doe_design_of_experiment_with_library_prep_files/",
                                            file_pref,
                                            "_rna_TE__sensitivity_doe.csv"))
-  ```
+```
 
 ### Analyze captures
 ```{r}
