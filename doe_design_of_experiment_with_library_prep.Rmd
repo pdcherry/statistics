@@ -26,6 +26,7 @@ To do so, I propose using multiplexed capture, 100 ng (and optionally 10 ng of R
 ## Procedure
 ```{r, setup, echo = FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE) # set default chunk option to NOT print the code that generated that output
+library(fs)                       # for filesystem navigation
 library(dplyr)                    # for dataframe manipulation
 library(tidyr)                    # for fancy dataframe manipulation
 library(readr)                    # for reading and writing dataframes to disk
@@ -138,9 +139,11 @@ rna_TE__doe_blocked %>% count(LP_operator, conc)
 ```{r, eval = FALSE}
 googlesheets4::write_sheet(rna_TE__doe_blocked, ss = "sheet_string_goes_here",
                            sheet = "rna_TE__sensitivity_doe");
-write_csv(rna_TE__doe_blocked, paste("doe_design_of_experiment_with_library_prep_files/",
-                                           file_pref,
-                                           "_rna_TE__sensitivity_doe.csv"))
+file_dest_dir <- "doe_design_of_experiment_with_library_prep_files"
+fs::dir_create(file_dest_dir);
+write_csv(rna_TE__doe_blocked, paste0(file_dest_dir, "/",
+                                      file_pref,
+                                      "_rna_TE__sensitivity_doe.csv"))
 ```
 
 ### Analyze captures
