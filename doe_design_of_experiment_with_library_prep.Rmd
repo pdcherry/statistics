@@ -1,0 +1,157 @@
+---
+title: "DoE: Design of Experiment: RNA-seq Library Prep & Target Enrichment (TE) Panel"
+author: "Patrick Cherry"
+date: "2023-05-24"
+output:
+  github_document: 
+    toc: yes
+    df_print: kable
+  pdf_document: 
+    toc: yes
+    latex_engine: xelatex
+    df_print: kable
+  html_document:
+    df_print: kable
+    code_folding: show
+    number_sections: no
+    toc: yes
+    toc_float: yes
+mainfont: Helvetica Neue
+---
+## Introduction and Background
+I had the idea that, given the success Panel A's bioinformatic performance, *it could be useful to show that TE panels work well for an extension of said bioinformatic performance.*
+
+To do so, I propose using multiplexed capture, 100 ng (and optionally 10 ng of RNA input), and technical replicates (3, perhaps 2). These are parameterized in this DoE script below and the resulting sample plan is exported to google sheets.
+
+## Procedure
+```{r, setup, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE) # set default chunk option to NOT print the code that generated that output
+library(dplyr)                    # for dataframe manipulation
+library(tidyr)                    # for fancy dataframe manipulation
+library(readr)                    # for reading and writing dataframes to disk
+library(googlesheets4)            # for reading and writing to googlesheets
+library(AlgDesign)                # for DoE blocking
+set.seed(1001)
+```
+
+```{r, echo = TRUE}
+file_pref <- "2023_05_24_RNA_TE__sensitivty_DoE"
+```
+
+```{r}
+panel_info <- tribble(
+  ~panel,  ~panel_size,  ~needed_sequencing,
+  "TE Panel A", 3.0, NA,
+  "TE Panel B",  36.8, NA,
+  "TE Panel C",  35.8, NA,
+  "Whole Transcriptome", NA, NA,
+)
+```
+
+## DoE with blocking for multiple operators
+I will block for the operators carrying out library prep, because operator is a known source of variation that is not relevant to understanding the effect of TE panel, RNA input mass, or concentration on performance.
+
+Blocking is the non-random assignment of samples to groups to minimize differences in the sample composition between the groups such that any effect of the grouping can be determined by the model and ignored (modeled out quantitatively and precisely).
+
+```{r, include=FALSE}
+panels <- factor(c("TE Panel A", "TE Panel V", "TE Panel C", "Whole Transcriptome"))
+concentrations <- factor(c(.027, .0027, .00027, .000027, .0000027))
+mass_inputs <- factor(c(10, 100))
+
+vec_levels_for_variables <- c(panels, concentrations, mass_inputs)
+
+rna_TE__sensitivity_doe <- gen.factorial(c(4,5,2), nVars = 3, factors = c(1),
+                                               varNames = c("panel", "conc", "mass_input")) %>%
+  bind_rows(., ., .) 
+
+rna_TE__sensitivity_doe
+rna_TE__sensitivity_doe <- optBlock(frml = ~ conc + panel + mass_input, 
+                                          withinData = rna_TE__sensitivity_doe, blocksizes = rep(60, 2), nRepeats	= 3)
+```
+
+```{r}
+rna_TE__sensitivity_doe$D;
+rna_TE__sensitivity_doe$diagonality
+```
+
+Diagonality is the degree to which the blocked variables are uncorrelated: a diagonality of 1.0 is perfectly uncorrelated. A value of 0.871 is moderate. We are getting values less than 1.0, because not every number of unique sample ( 2 * 4 * ~~5~~ ) factors to be processed is divisible by the number of blocking groups. We will see this effect illustrated in the "Check orthogonality of blocking" section.
+
+```{r}
+rna_TE__blocking_df <- bind_rows(
+ mutate(rna_TE__sensitivity_doe$Blocks$B1, "operator" = "Operator A"),
+ mutate(rna_TE__sensitivity_doe$Blocks$B2, "operator" = "Operator B"),
+) %>%
+  arrange(panel, conc, mass_input)
+```
+
+```{r, message = FALSE}
+(panels_to_join <- rna_TE__blocking_df %>%
+  distinct(panel) %>%
+   bind_cols(rename(panel_info, "panel_name" = 1)))
+```
+
+```{r, message = FALSE}
+(fusconcs_to_join <- rna_TE__blocking_df %>%
+  distinct(conc) %>%
+  bind_cols(concentrations) %>%
+  rename("concentrations" = 2))
+```
+
+```{r, message = FALSE}
+(massinput_to_join <- rna_TE__blocking_df %>%
+  distinct(mass_input) %>%
+  bind_cols(mass_inputs) %>%
+  rename("mass_inputs" = 2))
+```
+
+```{r}
+rna_TE__doe_blocked <- rna_TE__blocking_df %>%
+  left_join(panels_to_join, by = "panel") %>%
+  left_join(fusconcs_to_join, by = "conc") %>%
+  left_join(massinput_to_join, by = "mass_input") %>%
+  select("panel" = "panel_name", "conc" = "concentrations",
+         "mass_input" = "mass_inputs", "operator", panel_size, needed_sequencing) %>%
+  arrange(panel, desc(conc), mass_input) %>%
+  mutate("replicate_num" = row_number(), .by = c(panel, conc, mass_input)) %>%
+  relocate(replicate_num, .after = operator) %>%
+  rename("LP_operator" = "operator") %>%
+  arrange(panel, mass_input) %>%
+  mutate("capture" = ceiling(row_number()/6) ) %>%
+  relocate("capture", .after = replicate_num) %>%
+  arrange(panel, desc(conc), mass_input)
+head(rna_TE__doe_blocked, n = 10)
+```
+
+### Check orthogonality of blocking
+```{r}
+rna_TE__doe_blocked %>% count(LP_operator, mass_input)
+```
+
+```{r}
+rna_TE__doe_blocked %>% count(LP_operator, panel)
+```
+
+```{r}
+rna_TE__doe_blocked %>% count(LP_operator, conc)
+```
+
+```{r, eval = FALSE}
+googlesheets4::write_sheet(rna_TE__doe_blocked, ss = "sheet_string_goes_here",
+                           sheet = "rna_TE__sensitivity_doe");
+write_csv(rna_TE__doe_blocked, paste("doe_design_of_experiment_with_library_prep_files/",
+                                           file_pref,
+                                           "_rna_TE__sensitivity_doe.csv"))
+  ```
+
+### Analyze captures
+```{r}
+rna_TE__doe_blocked %>%
+  count(capture, panel, mass_input)
+```
+
+## Conclusion
+Great! We have an experiment design for testing the effect of these panels against each other and against whole transcriptome sequencing. The experiment had n = 3 replicates, and it is blocked for having two operators carry out the RNA-seq library preps.
+
+Importantly, when I get feedback on the design of this sample layout, I can easily show my work. Even better, if changes are needed, the entire design is programmed, and can be changed in seconds.
+
+Let's go!
