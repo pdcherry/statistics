@@ -2,11 +2,9 @@ statistics readme
 ================
 Patrick Cherry
 
-- <a href="#emmeans-estimated-marginal-means"
-  id="toc-emmeans-estimated-marginal-means">emmeans: Estimated marginal
-  means</a>
-- <a href="#doe-design-of-experiment"
-  id="toc-doe-design-of-experiment">DoE: Design of Experiment</a>
+- [emmeans: Estimated marginal means](#emmeans-estimated-marginal-means)
+- [DoE: Design of Experiment](#doe-design-of-experiment)
+- [Random forest classification](#random-forest-classification)
 
 ### emmeans: Estimated marginal means
 
@@ -44,3 +42,17 @@ Here, I use the and the standard `R` function `gen.factorial` to make a
 full factorial design and then use the package `AlgDesign` to add
 blocking for two operators who will be carrying out the experiment (with
 n = 3 replicates for each unique sample condition).
+
+### Random forest classification
+
+[Link to
+output](https://github.com/pdcherry/statistics/blob/main/random_forest_hyperparameters.md)
+
+Random forest model classification of legal status of trees in San
+Francisco Department of Public Works data from a Tidy Tuesday project.
+
+Here, I used `ranger` engine to train a random forest model to classify
+the legal status of the trees using all relevant observations, use the
+`tune` package to run hyperperamater optimization on `mtry` and `min_n`,
+and then evaluate the accuracy of the model using AUC and by plotting
+the correct and incorrect predictions in a map-like format.
