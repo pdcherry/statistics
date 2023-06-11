@@ -22,7 +22,7 @@ mainfont: Helvetica Neue
 The goal is the make a predictor of whether a tree tracked in San Francisco is a Department of Public Works maintained legal status tree, or some other legal status.
 
 ```{r, setup, echo = FALSE, message = FALSE}
-knitr::opts_chunk$set(echo = TRUE)  # set default chunk option to print the code that generated that output
+knitr::opts_chunk$set(echo = TRUE, dpi = 320)  # set default chunk option to print the code
 options(knitr.table.format = 'markdown') # render kable tables in md for github, comment out otherwise
 library(tidyverse)        # tidyverse plotting, dataframes, etc.
 library(tidymodels)       # for managing random forest models
@@ -67,8 +67,7 @@ col_plot_legalstatus_by_caretaker <- sftrees %>%
   ggplot(aes(percent_legal, caretaker, fill = legal_status)) +
   geom_col(position = "dodge") +
   scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.7, na.value = "grey50") +
-  labs(fill = NULL,
-       x = "proportion of trees in each category")
+  labs(x = "proportion of trees in each category")
 col_plot_legalstatus_by_caretaker
 ```
 
@@ -134,7 +133,7 @@ tree_loc_plot <- trees_formodel %>%
   scale_color_viridis_d(option = "D", begin = 0.1, end = 0.7)
 tree_loc_plot
 ```
-```{r, eval = FALSE}
+```{r, eval = FALSE, include = FALSE}
 ggsave("tree_loc_plot.png", tree_loc_plot, width = 5, height = 4, dpi = 320)
 ```
 
