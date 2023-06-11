@@ -52,7 +52,7 @@ sftrees %>%
 ```
 
 ```{r}
-sftrees %>% count(legal_status, caretaker, sort = TRUE)
+sftrees %>% count(legal_status, caretaker, sort = TRUE) %>% head(20)
 ```
 
 So the `legal_status` of "DPW Maintained" does not equate with a `caretaker` of "DPW"—in fact, most of the time, DPW-legal status trees are privately taken care of.
@@ -72,7 +72,6 @@ col_plot_legalstatus_by_caretaker <- sftrees %>%
 col_plot_legalstatus_by_caretaker
 ```
 
-
 ## NAs in data
 ```{r}
 sftrees %>%
@@ -86,16 +85,13 @@ The glimpse just turns the data to print left to right. The `n` column at the st
 
 ## Species
 ```{r}
-sftrees %>% count(species, sort = TRUE)
+sftrees %>% count(species, sort = TRUE) %>% head(20)
 ```
 
 ## plot_size
 ```{r}
-sftrees %>%
-  count(plot_size, sort = TRUE)
+sftrees %>% count(plot_size, sort = TRUE) %>% head(20)
 ```
-
-We 
 
 ## Prepare data for model
 ```{r}
@@ -320,6 +316,8 @@ final_rf_vip_plot<- final_rf %>%
   vip(geom = "point")
 final_rf_vip_plot
 ```
+
+Satisfyingly, whether the caretaker is private makes a large difference, and latitude and longitide each make a large (and approximately equal) contribution.
 
 # Apply the final model
 ```{r}
