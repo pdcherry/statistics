@@ -5,6 +5,7 @@ Patrick Cherry
 - [emmeans: Estimated marginal means](#emmeans-estimated-marginal-means)
 - [DoE: Design of Experiment](#doe-design-of-experiment)
 - [Random forest classification](#random-forest-classification)
+- [Anscombe’s Quartet](#anscombes-quartet)
 
 ### emmeans: Estimated marginal means
 
@@ -56,3 +57,19 @@ the legal status of the trees using all relevant observations, use the
 `tune` package to run hyperperamater optimization on `mtry` and `min_n`,
 and then evaluate the accuracy of the model using AUC and by plotting
 the correct and incorrect predictions in a map-like format.
+
+### Anscombe’s Quartet
+
+[Link to
+output](https://github.com/pdcherry/statistics/blob/main/Anscombes_quartet.md)
+
+Anscombe’s quartet is a set of four x : y value pairs published by F J
+Anscombe in American Statistician in 1793. The sets have nearly
+identical descriptive statistics, like mean, standard deviation, R^2
+correlation, and least-squares regression slopes, (to ~ 3 decimal
+places), but are clearly very different data sets when visualized by
+plotting.
+
+I use `unpivotr` to tidy the data upon import, ggplot to make plots, and
+`purrr`’s `map` for functional programming on nested dataframes with
+`broom` for model object manipulation, included nested in dataframes.

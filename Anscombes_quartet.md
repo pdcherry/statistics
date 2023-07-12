@@ -10,8 +10,9 @@ Patrick Cherry
 - [Conclusions](#conclusions)
   - [Further reading](#further-reading)
 
-Anscombe’s quartet is a set of four x : y value pairs published by F J
-Anscombe in American Statistician in 1793. The sets have nearly
+Anscombe’s quartet is a set of four x : y value pairs
+[published](https://github.com/pdcherry/statistics/blob/main/code_and_data/anscombe1973.pdf)
+by F J Anscombe in American Statistician in 1793. The sets have nearly
 identical descriptive statistics, like mean, standard deviation, R^2
 correlation, and least-squares regression slopes, (to ~ 3 decimal
 places), but are clearly very different data sets when visualized by

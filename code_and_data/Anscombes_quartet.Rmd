@@ -18,7 +18,7 @@ output:
     toc_float: yes
 mainfont: Helvetica Neue
 ---
-Anscombe's quartet is a set of four x : y value pairs published by F J Anscombe in American Statistician in 1793. The sets have nearly identical descriptive statistics, like mean, standard deviation, R^2 correlation, and least-squares regression slopes, (to ~ 3 decimal places), but are clearly very different data sets when visualized by plotting.
+Anscombe's quartet is a set of four x : y value pairs [published](https://github.com/pdcherry/statistics/blob/main/code_and_data/anscombe1973.pdf) by F J Anscombe in American Statistician in 1793. The sets have nearly identical descriptive statistics, like mean, standard deviation, R^2 correlation, and least-squares regression slopes, (to ~ 3 decimal places), but are clearly very different data sets when visualized by plotting.
 
 Anscombe intended the data sets to illustrate that descriptive statistics, while helpful, are incomplete, and can obscure important trends or caveats in the data that are very easily observed visually.
 
